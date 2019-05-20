@@ -5,7 +5,7 @@
 * 文件夹里包含的roaring.h roaring.hh roaring.c是CRoaring的0.2.60版本，用amalgamation.sh生成的。
 
 # 安装
-* 在php的源代码目录建立roaring_bitmap目录，譬如php-7.xxx/ext/roaring_bitmap
+* 下载后将本目录改名roaring_bitmap并放进php的源代码目录，譬如php-7.xxx/ext/roaring_bitmap
 * 将文件放进这个目录，并且运行phpize && ./configure && make
 
 #Example(32 bit):
