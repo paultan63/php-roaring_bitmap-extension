@@ -10,7 +10,7 @@
 * 修改php.ini，将extension=roaring_bitmap.so加进去
 
 # Example(32 bit):
-* All method accept 32 bit integer only(run at 64 bit system)
+* All method accept 32 bit integer only
 * If there is no requirement for 64-bit integers, 32-bit roaring_bitmap should be used for better performance.
 ```
 $roaring = new roaring_bitmap;
