@@ -6,7 +6,8 @@
 
 # Install
 * 下载后将本目录改名roaring_bitmap并放进php的源代码目录，譬如php-7.xxx/ext/roaring_bitmap
-* 进入这个目录，并且运行phpize && ./configure && make
+* 进入这个目录，并且运行phpize && ./configure && make install
+* 修改php.ini，将extension=roaring_bitmap.so加进去
 
 #Example(32 bit):
 ```
