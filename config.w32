@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("roaring_bitmap", "for roaring_bitmap support", "no");
+
+// Otherwise, use ARG_ENABLE
+ARG_ENABLE("roaring_bitmap", "enable roaring_bitmap support", "no");
+
+if (PHP_ROARING_BITMAP != "no") {
+	EXTENSION("roaring_bitmap", "roaring_bitmap.c", PHP_EXTNAME_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+}
+
