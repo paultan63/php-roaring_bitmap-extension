@@ -1,10 +1,10 @@
 # php-roaring_bitmap-extension
 
-##对CRoaring进行封装的PHP扩展库，目前仅支持 PHP 7.0 以上
+* 对CRoaring进行封装的PHP扩展库，目前仅支持 PHP 7.0 以上
 * githup上的[CRoaring](https://github.com/RoaringBitmap/CRoaring)
 * 文件夹里包含的roaring.h roaring.hh roaring.c是CRoaring的0.2.60版本，用amalgamation.sh生成的。
 
-# 安装
+# Install
 * 下载后将本目录改名roaring_bitmap并放进php的源代码目录，譬如php-7.xxx/ext/roaring_bitmap
 * 将文件放进这个目录，并且运行phpize && ./configure && make
 
