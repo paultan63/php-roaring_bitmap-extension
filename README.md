@@ -9,7 +9,7 @@
 * 进入这个目录，并且运行phpize && ./configure && make install
 * 修改php.ini，将extension=roaring_bitmap.so加进去
 
-#Example(32 bit):
+# Example(32 bit):
 ```
 $roaring = new roaring_bitmap;
 
@@ -39,7 +39,7 @@ print_r($vals);
 ```
 
 
-#Example(64 bit)
+# Example(64 bit)
 ```
 $roaring = new roaring_bitmap64;
 
@@ -69,7 +69,7 @@ print_r($vals);
 ```
 
 
-#roaring_bitmap API
+# roaring_bitmap API
 *  void roaring_bitmap::__construct()
 >    Create the roaring_bitmap object 
 
@@ -210,7 +210,7 @@ print_r($vals);
 *  long roaring_bitmap::shrinkToFit()
 >    If needed, reallocate memory to shrink the memory usage. Returns the number of bytes saved. 
 
-#roaring_bitmap64 API
+# roaring_bitmap64 API
 *  void roaring_bitmap64::__construct()
 >    Create the roaring_bitmap64 object 
 
