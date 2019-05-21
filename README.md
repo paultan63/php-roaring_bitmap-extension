@@ -6,6 +6,14 @@
 * Roaring bitmap其中一个用途是非常高效的计算DAU以及留存（两个bitmap做and操作即可）等统计，解决PHP保存所有用户ID的原生数组占用过多内存的问题。
 
 # Install
+* #cd /your/php-src-dir/ext
+* git clone https://github.com/paultan63/php-roaring_bitmap-extension.git
+* phpize
+* ./configure
+* make install
+* #add extension=roaring_bitmap.so to php.ini
+
+## 中文说明：
 * 下载后将本目录改名roaring_bitmap并放进php的源代码目录，譬如php-7.xxx/ext/roaring_bitmap
 * 进入这个目录，并且运行phpize && ./configure && make install
 * 修改php.ini，将extension=roaring_bitmap.so加进去
