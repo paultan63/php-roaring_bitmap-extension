@@ -27,11 +27,7 @@
 #include "ext/standard/info.h"
 #include "php_roaring_bitmap.h"
 
-#define PRIu32 "u"
-#define PRId32 "d"
-
-#define STR1(R)  #R
-#define STR(R)  STR1(R)
+#include "my_php_define.h"
 
 #include "roaring.hh"
 #include "roaring.c"
@@ -45,10 +41,12 @@ static int le_roaring_bitmap;
 
 zend_object_handlers roaring_bitmap_object_handlers;
 
+#if PHP_MAJOR_VERSION >= 7
+
 typedef struct _roaring_bitmap_object {
     Roaring *roaring;
     Roaring::const_iterator iterator;
-    zend_object std;
+    zend_object std; // last
 } roaring_bitmap_object;
 
 static inline roaring_bitmap_object* php_roaring_bitmap_obj_from_obj(zend_object *obj) {
@@ -56,6 +54,22 @@ static inline roaring_bitmap_object* php_roaring_bitmap_obj_from_obj(zend_object
 }
 
 #define Z_TSTOBJ_P(zv)  php_roaring_bitmap_obj_from_obj(Z_OBJ_P((zv)))
+
+#else
+
+typedef struct _roaring_bitmap_object {
+    zend_object std; // first
+    Roaring *roaring;
+    Roaring::const_iterator iterator;
+} roaring_bitmap_object;
+
+static inline roaring_bitmap_object* php_roaring_bitmap_obj_from_zval(zval *obj) {
+    return (roaring_bitmap_object *)zend_object_store_get_object(obj TSRMLS_CC);
+}
+
+#define Z_TSTOBJ_P(zv)  php_roaring_bitmap_obj_from_zval(zv)
+
+#endif
 
 zend_class_entry* roaring_bitmap_ce;
 
@@ -65,10 +79,13 @@ static int le_roaring_bitmap64;
 
 zend_object_handlers roaring_bitmap64_object_handlers;
 
+
+#if PHP_MAJOR_VERSION >= 7
+
 typedef struct _roaring_bitmap64_object {
     Roaring64Map *roaring;
     Roaring64Map::const_iterator iterator;
-    zend_object std;
+    zend_object std; // last
 } roaring_bitmap64_object;
 
 static inline roaring_bitmap64_object* php_roaring_bitmap64_obj_from_obj(zend_object *obj) {
@@ -76,6 +93,22 @@ static inline roaring_bitmap64_object* php_roaring_bitmap64_obj_from_obj(zend_ob
 }
 
 #define Z_TSTOBJ64_P(zv)  php_roaring_bitmap64_obj_from_obj(Z_OBJ_P((zv)))
+
+#else
+
+typedef struct _roaring_bitmap64_object {
+    zend_object std; // first
+    Roaring64Map *roaring;
+    Roaring64Map::const_iterator iterator;
+} roaring_bitmap64_object;
+
+static inline roaring_bitmap64_object* php_roaring_bitmap64_obj_from_zval(zval *obj) {
+    return (roaring_bitmap64_object *)zend_object_store_get_object(obj TSRMLS_CC);
+}
+
+#define Z_TSTOBJ64_P(zv)  php_roaring_bitmap64_obj_from_zval(zv)
+
+#endif
 
 zend_class_entry* roaring_bitmap64_ce;
 
@@ -108,7 +141,7 @@ PHP_METHOD(roaring_bitmap, __construct)
 
     intern = Z_TSTOBJ_P(zobj);
     if(intern != NULL) {
-        intern->roaring = new Roaring();
+        intern->roaring = new Roaring();    
     }
 }
 /* }}} */
@@ -194,26 +227,38 @@ PHP_METHOD(roaring_bitmap, addMany)
 {
 	long ret = 0;
 	ulong num_key;
-	zend_string *key;
+
 	zval *val, *arr;
 	HashTable *arr_hash;
 	int array_count;
-    
-    zval *zobj = getThis();
-    roaring_bitmap_object *intern;
 
-    if (zend_parse_parameters(
+#if PHP_MAJOR_VERSION >= 7
+  zend_string *key;
+#else
+  zval **data;
+  HashPosition pointer;
+#endif
+
+  zval *zobj = getThis();
+  roaring_bitmap_object *intern;
+
+  if (zend_parse_parameters(
       ZEND_NUM_ARGS() TSRMLS_CC, "a", &arr) == FAILURE) {
           RETURN_NULL();
-    }
+  }
     
-    arr_hash = Z_ARRVAL_P(arr);
-//    array_count = zend_hash_num_elements(arr_hash);
-//    php_printf("The array passed contains %d elements\n", array_count);
+  arr_hash = Z_ARRVAL_P(arr);
+//  array_count = zend_hash_num_elements(arr_hash);
+//  php_printf("The array passed contains %d elements\n", array_count);
 
-    intern = Z_TSTOBJ_P(zobj);
-    if(intern != NULL) {
+  intern = Z_TSTOBJ_P(zobj);
+  if(intern != NULL) {
+#if PHP_MAJOR_VERSION >= 7    
     	ZEND_HASH_FOREACH_KEY_VAL(arr_hash, num_key, key, val){
+#else
+      for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
+        val = *data;
+#endif        
 /*    		
     		if(key){
     			php_printf("string key: %s\n", ZSTR_VAL(key));
@@ -232,22 +277,28 @@ PHP_METHOD(roaring_bitmap, addMany)
     				break;
 
     			case IS_NULL:
+#if PHP_MAJOR_VERSION >= 7          
     			case IS_TRUE:
     			case IS_FALSE:
+#else
+          case IS_BOOL:
+#endif                    
     			case IS_ARRAY:
     			case IS_OBJECT:
     			case IS_RESOURCE:
     			default: // ignore
     				break;
     		}
-
+#if PHP_MAJOR_VERSION >= 7
     	}ZEND_HASH_FOREACH_END();
-
+#else
+      }
+#endif
 //    	intern->roaring->addRange(begin, end);
         RETURN_LONG(ret);
-    }
+  }
 
-    RETURN_NULL();
+  RETURN_NULL();
 }
 /* }}} */
 
@@ -1040,7 +1091,8 @@ PHP_METHOD(roaring_bitmap, toString)
     intern = Z_TSTOBJ_P(zobj);
     if(intern != NULL) {
     	std::string str = intern->roaring->toString();
-    	RETURN_STRINGL(str.c_str(), str.length());
+
+      MY_RETURN_STRINGL(str.c_str(), str.length(), 1);      
     }
 
     RETURN_NULL();
@@ -1066,14 +1118,13 @@ PHP_METHOD(roaring_bitmap, write)
     intern = Z_TSTOBJ_P(zobj);
     if(intern != NULL) {
     	uint32_t size = intern->roaring->getSizeInBytes(portable);
-    	char* buf = (char*)malloc(sizeof(char) * size);
+    	char* buf = (char*)emalloc(sizeof(char) * size);
     	if(buf == NULL){
     		RETURN_NULL();
     	}
     	size_t len = intern->roaring->write(buf, portable);
-
-    	RETVAL_STRINGL(buf, len);
-    	free(buf);
+     
+      MY_RETVAL_STRINGL(buf, len, 0);
 
     	RETURN_TRUE;
     }
@@ -1229,8 +1280,25 @@ PHP_METHOD(roaring_bitmap, shrinkToFit)
 
 // ------------------------------------------------------------------ 
 // ------------------------------------------------------------------
-zend_object *roaring_bitmap_object_new(zend_class_entry *ce TSRMLS_DC)
+static void roaring_bitmap_object_free(zend_object *object)
 {
+    roaring_bitmap_object *my_obj;
+    my_obj = (roaring_bitmap_object *)((char *)
+        object - XtOffsetOf(roaring_bitmap_object, std));
+    delete my_obj->roaring;
+    my_obj->roaring = NULL;
+
+    // Free the object using Zend macro.
+    zend_object_std_dtor(object); 
+}
+
+#if PHP_MAJOR_VERSION >= 7
+zend_object* roaring_bitmap_object_new(zend_class_entry *ce TSRMLS_DC)
+#else
+zend_object_value roaring_bitmap_object_new(zend_class_entry *ce TSRMLS_DC)
+#endif
+{
+#if PHP_MAJOR_VERSION >= 7  
     roaring_bitmap_object *intern = (roaring_bitmap_object*)ecalloc(1,
             sizeof(roaring_bitmap_object) +
             zend_object_properties_size(ce));
@@ -1241,27 +1309,40 @@ zend_object *roaring_bitmap_object_new(zend_class_entry *ce TSRMLS_DC)
     intern->std.handlers = &roaring_bitmap_object_handlers;
 
     return &intern->std;
+#else
+    zval *tmp;
+    zend_object_value retval;
+
+    roaring_bitmap_object *intern = (roaring_bitmap_object *)ecalloc(1, sizeof(roaring_bitmap_object));
+    intern->std.ce = ce;
+
+    ALLOC_HASHTABLE(intern->std.properties);
+    zend_hash_init(intern->std.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+
+    PROP_INIT;
+
+    retval.handle = zend_objects_store_put(intern, NULL,
+        (zend_objects_free_object_storage_t)roaring_bitmap_object_free, NULL TSRMLS_CC);
+
+    retval.handlers = &roaring_bitmap_object_handlers;
+
+    return retval;
+#endif    
 }
 
 static void roaring_bitmap_object_destroy(zend_object *object)
 {
+#if PHP_MAJOR_VERSION >= 7  
     roaring_bitmap_object *my_obj;
     my_obj = (roaring_bitmap_object*)((char *)
         object - XtOffsetOf(roaring_bitmap_object, std));
 
     // Call __destruct() from user-land.
+    
     zend_objects_destroy_object(object);
-}
-
-static void roaring_bitmap_object_free(zend_object *object)
-{
-    roaring_bitmap_object *my_obj;
-    my_obj = (roaring_bitmap_object *)((char *)
-        object - XtOffsetOf(roaring_bitmap_object, std));
-    delete my_obj->roaring;
-
-    // Free the object using Zend macro.
-    zend_object_std_dtor(object); 
+#else
+    
+#endif    
 }
 
 // ------------------------------------------------------------------ 
@@ -1407,7 +1488,7 @@ PHP_METHOD(roaring_bitmap64, __construct)
 
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
-        intern->roaring = new Roaring64Map();
+        intern->roaring = new Roaring64Map();     
     }
 }
 /* }}} */
@@ -1472,11 +1553,17 @@ PHP_METHOD(roaring_bitmap64, addMany)
 {
     long ret = 0;
     ulong num_key;
-    zend_string *key;
     zval *val, *arr;
     HashTable *arr_hash;
     int array_count;
-    
+
+#if PHP_MAJOR_VERSION >= 7
+    zend_string *key;
+#else
+  zval **data;
+  HashPosition pointer;
+#endif
+
     zval *zobj = getThis();
     roaring_bitmap64_object *intern;
 
@@ -1491,7 +1578,12 @@ PHP_METHOD(roaring_bitmap64, addMany)
 
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
+#if PHP_MAJOR_VERSION >= 7      
         ZEND_HASH_FOREACH_KEY_VAL(arr_hash, num_key, key, val){
+#else
+        for(zend_hash_internal_pointer_reset_ex(arr_hash, &pointer); zend_hash_get_current_data_ex(arr_hash, (void**) &data, &pointer) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &pointer)) {
+            val = *data;
+#endif                   
 /*          
             if(key){
                 php_printf("string key: %s\n", ZSTR_VAL(key));
@@ -1510,17 +1602,23 @@ PHP_METHOD(roaring_bitmap64, addMany)
                     break;
 
                 case IS_NULL:
+#if PHP_MAJOR_VERSION >= 7                
                 case IS_TRUE:
                 case IS_FALSE:
+#else
+                case IS_BOOL:
+#endif                                
                 case IS_ARRAY:
                 case IS_OBJECT:
                 case IS_RESOURCE:
                 default: // ignore
                     break;
             }
-
+#if PHP_MAJOR_VERSION >= 7
         }ZEND_HASH_FOREACH_END();
-
+#else
+      }
+#endif
 //      intern->roaring->addRange(begin, end);
         RETURN_LONG(ret);
     }
@@ -1597,9 +1695,8 @@ PHP_METHOD(roaring_bitmap64, maximum)
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
         ret = intern->roaring->maximum();
-        zend_string *strg = strpprintf(0, "%llu", ret);
 
-        RETURN_STR(strg);
+        RETURN_LONGLONG_STR(ret);
     }
 
     RETURN_NULL();
@@ -1618,9 +1715,8 @@ PHP_METHOD(roaring_bitmap64, minimum)
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
         ret = intern->roaring->minimum();
-        zend_string *strg = strpprintf(0, "%llu", ret);
 
-        RETURN_STR(strg);
+        RETURN_LONGLONG_STR(ret);
     }
 
     RETURN_NULL();
@@ -1675,9 +1771,8 @@ PHP_METHOD(roaring_bitmap64, rank)
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
         ret = intern->roaring->rank(n);
-        zend_string *strg = strpprintf(0, "%llu", (unsigned long long)ret);
-
-        RETURN_STR(strg);
+        
+        RETURN_LONGLONG_STR(ret);
     }
 
     RETURN_NULL();
@@ -1708,9 +1803,7 @@ PHP_METHOD(roaring_bitmap64, select)
         uint64_t val;
         ret = intern->roaring->select(n, &val);
         if(ret == true){
-            zend_string *strg = strpprintf(0, "%llu", (unsigned long long)val);
-
-            RETURN_STR(strg);
+          RETURN_LONGLONG_STR(val);
         }
 
         RETURN_BOOL(ret);
@@ -1785,9 +1878,7 @@ PHP_METHOD(roaring_bitmap64, cardinality)
     if(intern != NULL) {
         ret = intern->roaring->cardinality();
         
-        zend_string *strg = strpprintf(0, "%llu", (unsigned long long)ret);
-
-        RETURN_STR(strg);
+        RETURN_LONGLONG_STR(ret);
     }
 
     RETURN_NULL();
@@ -1814,10 +1905,8 @@ PHP_METHOD(roaring_bitmap64, getSizeInBytes)
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
         ret = intern->roaring->getSizeInBytes(portable);
-        
-        zend_string *strg = strpprintf(0, "%llu", (unsigned long long)ret);
 
-        RETURN_STR(strg);
+        RETURN_LONGLONG_STR(ret);
     }
 
     RETURN_NULL();
@@ -2112,9 +2201,7 @@ PHP_METHOD(roaring_bitmap64, iterator_value)
     if(intern != NULL) {
         ret = *(intern->iterator);;
         
-        zend_string *strg = strpprintf(0, "%llu", (unsigned long long)ret);
-
-        RETURN_STR(strg);
+        RETURN_LONGLONG_STR(ret);
     }
 
     RETURN_NULL();
@@ -2148,7 +2235,7 @@ PHP_METHOD(roaring_bitmap64, toArray)
         char buf[32];
         for(uint64_t i=0; i < num; i++, p++){
             len = snprintf(buf, sizeof(buf), "%llu", (unsigned long long)*p);
-            add_next_index_stringl(return_value, buf, len);
+            MY_ADD_NEXT_INDEX_STRINGL(return_value, buf, len, 1);
         }
         free(vals);
 
@@ -2169,7 +2256,8 @@ PHP_METHOD(roaring_bitmap64, toString)
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
         std::string str = intern->roaring->toString();
-        RETURN_STRINGL(str.c_str(), str.length());
+
+        MY_RETURN_STRINGL(str.c_str(), str.length(), 1);
     }
 
     RETURN_NULL();
@@ -2195,14 +2283,14 @@ PHP_METHOD(roaring_bitmap64, write)
     intern = Z_TSTOBJ64_P(zobj);
     if(intern != NULL) {
         uint32_t size = intern->roaring->getSizeInBytes(portable);
-        char* buf = (char*)malloc(sizeof(char) * size);
+        char* buf = (char*)emalloc(sizeof(char) * size);
         if(buf == NULL){
             RETURN_NULL();
         }
         size_t len = intern->roaring->write(buf, portable);
+       
+        MY_RETVAL_STRINGL(buf, len, 0);
 
-        RETVAL_STRINGL(buf, len);
-        free(buf);
 
         return;
     }
@@ -2359,8 +2447,26 @@ PHP_METHOD(roaring_bitmap64, shrinkToFit)
 
 // ------------------------------------------------------------------ 
 // ------------------------------------------------------------------
-zend_object *roaring_bitmap64_object_new(zend_class_entry *ce TSRMLS_DC)
+
+static void roaring_bitmap64_object_free(zend_object *object)
 {
+    roaring_bitmap64_object *my_obj;
+    my_obj = (roaring_bitmap64_object *)((char *)
+        object - XtOffsetOf(roaring_bitmap64_object, std));
+    delete my_obj->roaring;
+    my_obj->roaring = NULL;
+
+    // Free the object using Zend macro.
+    zend_object_std_dtor(object); 
+}
+
+#if PHP_MAJOR_VERSION >= 7
+zend_object* roaring_bitmap64_object_new(zend_class_entry *ce TSRMLS_DC)
+#else
+zend_object_value roaring_bitmap64_object_new(zend_class_entry *ce TSRMLS_DC)
+#endif
+{
+#if PHP_MAJOR_VERSION >= 7  
     roaring_bitmap64_object *intern = (roaring_bitmap64_object*)ecalloc(1,
             sizeof(roaring_bitmap64_object) +
             zend_object_properties_size(ce));
@@ -2371,27 +2477,38 @@ zend_object *roaring_bitmap64_object_new(zend_class_entry *ce TSRMLS_DC)
     intern->std.handlers = &roaring_bitmap64_object_handlers;
 
     return &intern->std;
+#else
+    zval *tmp;
+    zend_object_value retval;
+
+    roaring_bitmap64_object *intern = (roaring_bitmap64_object *)ecalloc(1, sizeof(roaring_bitmap64_object));
+    intern->std.ce = ce;
+
+    ALLOC_HASHTABLE(intern->std.properties);
+    zend_hash_init(intern->std.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+    
+    PROP_INIT;
+
+    retval.handle = zend_objects_store_put(intern, NULL,
+        (zend_objects_free_object_storage_t)roaring_bitmap64_object_free, NULL TSRMLS_CC);
+    retval.handlers = &roaring_bitmap64_object_handlers;
+
+    return retval;
+#endif    
 }
 
 static void roaring_bitmap64_object_destroy(zend_object *object)
 {
+#if PHP_MAJOR_VERSION >= 7  
     roaring_bitmap64_object *my_obj;
     my_obj = (roaring_bitmap64_object*)((char *)
         object - XtOffsetOf(roaring_bitmap64_object, std));
 
-    // Call __destruct() from user-land.
+    // Call __destruct() from user-land.    
     zend_objects_destroy_object(object);
-}
-
-static void roaring_bitmap64_object_free(zend_object *object)
-{
-    roaring_bitmap64_object *my_obj;
-    my_obj = (roaring_bitmap64_object *)((char *)
-        object - XtOffsetOf(roaring_bitmap64_object, std));
-    delete my_obj->roaring;
-
-    // Free the object using Zend macro.
-    zend_object_std_dtor(object); 
+#else
+    
+#endif    
 }
 
 // ------------------------------------------------------------------ 
@@ -2477,6 +2594,25 @@ const zend_function_entry roaring_bitmap64_functions[] = {
 };
 /* }}} */
 
+#if PHP_MAJOR_VERSION < 7
+
+static ZEND_RSRC_DTOR_FUNC( destroy_roaring_bitmap )
+{
+    if ( RSRC_PTR ) {
+        delete (Roaring *)RSRC_PTR;   
+        RSRC_PTR = NULL;
+    }
+}
+
+static ZEND_RSRC_DTOR_FUNC( destroy_roaring_bitmap64 )
+{
+    if ( RSRC_PTR ) {
+        delete (Roaring64Map *)RSRC_PTR;     
+        RSRC_PTR = NULL;
+    }
+}
+
+#endif
 
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -2494,6 +2630,7 @@ PHP_MINIT_FUNCTION(roaring_bitmap)
         zend_get_std_object_handlers(), 
         sizeof(roaring_bitmap_object_handlers));
 
+#if PHP_MAJOR_VERSION >= 7
     // Handler for free'ing the object.
     roaring_bitmap_object_handlers.free_obj = roaring_bitmap_object_free;
 
@@ -2501,7 +2638,10 @@ PHP_MINIT_FUNCTION(roaring_bitmap)
     roaring_bitmap_object_handlers.dtor_obj = roaring_bitmap_object_destroy; 
 
     // Offset into the engine.
-    roaring_bitmap_object_handlers.offset = XtOffsetOf(roaring_bitmap_object, std); 
+    roaring_bitmap_object_handlers.offset = XtOffsetOf(roaring_bitmap_object, std);
+#else
+    le_roaring_bitmap  = zend_register_list_destructors_ex( destroy_roaring_bitmap,  NULL, "roaring_bitmap",  module_number );    
+#endif
 
     //--------------- 64 bit ------------------------
     zend_class_entry ce64;
@@ -2513,6 +2653,7 @@ PHP_MINIT_FUNCTION(roaring_bitmap)
         zend_get_std_object_handlers(), 
         sizeof(roaring_bitmap64_object_handlers));
 
+#if PHP_MAJOR_VERSION >= 7 
     // Handler for free'ing the object.
     roaring_bitmap64_object_handlers.free_obj = roaring_bitmap64_object_free;
 
@@ -2521,6 +2662,9 @@ PHP_MINIT_FUNCTION(roaring_bitmap)
 
     // Offset into the engine.
     roaring_bitmap64_object_handlers.offset = XtOffsetOf(roaring_bitmap64_object, std);
+#else
+    le_roaring_bitmap64  = zend_register_list_destructors_ex( destroy_roaring_bitmap64,  NULL, "roaring_bitmap64",  module_number );    
+#endif
 
 
     return SUCCESS;
@@ -2554,7 +2698,9 @@ zend_module_entry roaring_bitmap_module_entry = {
 #ifdef ZTS
 ZEND_TSRMLS_CACHE_DEFINE()
 #endif
+
 ZEND_GET_MODULE(roaring_bitmap)
+
 #endif
 
 
