@@ -21,7 +21,7 @@
 # Example(32 bit):
 * All method accept 32 bit integer only
 * If there is no requirement for 64-bit integers, 32-bit roaring_bitmap should be used for better performance.
-```
+```php
 $roaring = new roaring_bitmap;
 
 $roaring->addMany(array(1,2,3));
@@ -52,7 +52,7 @@ print_r($vals);
 
 # Example(64 bit)
 All method accept 32 bit or 64 bit integer
-```
+```php
 $roaring = new roaring_bitmap64;
 
 $roaring->addMany(array(9000000000000000100,9000000000000000101,9000000000000000102));
