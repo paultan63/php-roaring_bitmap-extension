@@ -1099,7 +1099,7 @@ PHP_METHOD(roaring_bitmap, toString)
 }
 /* }}} */
 
-/* {{{ proto bool roaring_bitmap::write([bool $portable = false])
+/* {{{ proto string roaring_bitmap::write([bool $portable = false])
    write a bitmap to a char buffer. Returns how many bytes were written which should be getSizeInBytes(). 
    Setting the portable flag to false enable a custom format that can save space compared to the portable format 
    (e.g., for very sparse bitmaps). */
@@ -1126,19 +1126,18 @@ PHP_METHOD(roaring_bitmap, write)
      
       MY_RETVAL_STRINGL(buf, len, 0);
 
-    	RETURN_TRUE;
+    	return;
     }
 
     RETURN_NULL();
 }
 /* }}} */
 
-/* {{{ proto bool roaring_bitmap::read([bool $portable = false])
+/* {{{ proto long roaring_bitmap::read([bool $portable = false])
    read a bitmap from a serialized version. Setting the portable flag to false enable a custom format that 
    can save space compared to the portable format (e.g., for very sparse bitmaps). */
 PHP_METHOD(roaring_bitmap, read)
 {
-	long ret = 0;
 	zval* data;
 	bool portable = false;
 
@@ -1148,6 +1147,9 @@ PHP_METHOD(roaring_bitmap, read)
     if (zend_parse_parameters(
       ZEND_NUM_ARGS() TSRMLS_CC, "z|b", &data, &portable) == FAILURE) {
           RETURN_NULL();
+    }
+    if(Z_TYPE_P(data) != IS_STRING){
+      RETURN_FALSE;
     }
 
     intern = Z_TSTOBJ_P(zobj);
@@ -1161,7 +1163,7 @@ PHP_METHOD(roaring_bitmap, read)
     		 RETURN_NULL();
     	}
 
-    	RETURN_LONG(ret);
+    	RETURN_TRUE;
     }
 
     RETURN_NULL();
@@ -2291,7 +2293,6 @@ PHP_METHOD(roaring_bitmap64, write)
        
         MY_RETVAL_STRINGL(buf, len, 0);
 
-
         return;
     }
 
@@ -2304,7 +2305,6 @@ PHP_METHOD(roaring_bitmap64, write)
    can save space compared to the portable format (e.g., for very sparse bitmaps). */
 PHP_METHOD(roaring_bitmap64, read)
 {
-    long ret = 0;
     zval* data;
     bool portable = false;
 
@@ -2314,6 +2314,9 @@ PHP_METHOD(roaring_bitmap64, read)
     if (zend_parse_parameters(
       ZEND_NUM_ARGS() TSRMLS_CC, "z|b", &data, &portable) == FAILURE) {
           RETURN_NULL();
+    }
+    if(Z_TYPE_P(data) != IS_STRING){
+      RETURN_FALSE;
     }
 
     intern = Z_TSTOBJ64_P(zobj);
@@ -2327,7 +2330,7 @@ PHP_METHOD(roaring_bitmap64, read)
              RETURN_NULL();
         }
 
-        RETURN_LONG(ret);
+        RETURN_TRUE;
     }
 
     RETURN_NULL();

@@ -197,12 +197,12 @@ print_r($vals);
 *  string roaring_bitmap::toString()
 >    Print the content of the bitmap into a string and return it. 
 
-*  bool roaring_bitmap::write([bool $portable = false])
+*  string roaring_bitmap::write([bool $portable = false])
 >    write a bitmap to a char buffer. Returns how many bytes were written which should be getSizeInBytes(). 
 >    Setting the portable flag to false enable a custom format that can save space compared to the portable format 
 >    (e.g., for very sparse bitmaps). 
 
-*  bool roaring_bitmap::read([bool $portable = false])
+*  bool roaring_bitmap::read(string $data, [bool $portable = false])
 >    read a bitmap from a serialized version. Setting the portable flag to false enable a custom format that 
 >    can save space compared to the portable format (e.g., for very sparse bitmaps). 
 
@@ -316,12 +316,12 @@ print_r($vals);
 *  string roaring_bitmap64::toString()
 >    Print the content of the bitmap into a string and return it. 
 
-*  bool roaring_bitmap64::write([bool $portable = false])
+*  string roaring_bitmap64::write([bool $portable = false])
 >    write a bitmap to a char buffer. Returns how many bytes were written which should be getSizeInBytes(). 
 >    Setting the portable flag to false enable a custom format that can save space compared to the portable format 
 >    (e.g., for very sparse bitmaps). 
 
-*  bool roaring_bitmap64::read([bool $portable = false])
+*  bool roaring_bitmap64::read(string $data, [bool $portable = false])
 >    read a bitmap from a serialized version. Setting the portable flag to false enable a custom format that 
 >    can save space compared to the portable format (e.g., for very sparse bitmaps). 
 
