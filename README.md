@@ -7,7 +7,8 @@
 
 # Install
 * #cd /your/php-src-dir/ext
-* git clone https://github.com/paultan63/php-roaring_bitmap-extension.git
+* git clone https://github.com/paultan63/php-roaring_bitmap-extension.git roaring_bitmap
+* cd roaring_bitmap
 * phpize
 * ./configure
 * make install
