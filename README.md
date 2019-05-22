@@ -19,8 +19,8 @@
 * 进入这个目录，并且运行phpize && ./configure && make install
 * 修改php.ini，将extension=roaring_bitmap.so加进去
 
-# Example(32 bit):
-* All method accept 32 bit integer only
+# Example(32-bit integer):
+* All method accept 32-bit integer only
 * If there is no requirement for 64-bit integers, 32-bit roaring_bitmap should be used for better performance.
 ```php
 $roaring = new roaring_bitmap;
@@ -51,7 +51,7 @@ print_r($vals);
 ```
 
 
-# Example(64 bit)
+# Example(64-bit integer)
 All method accept 32 bit or 64 bit integer
 ```php
 $roaring = new roaring_bitmap64;
