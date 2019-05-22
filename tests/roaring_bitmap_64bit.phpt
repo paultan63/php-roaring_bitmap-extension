@@ -28,7 +28,13 @@ for($roaring->iterator_begin(); !$roaring->iterator_end(); $roaring->iterator_ad
 printf("\n");
 
 $vals = $roaring->toArray();
-print_r($vals);
+printf("%s\n", json_encode($vals));
+
+$data = $roaring->write(false);
+$roaring3 = new roaring_bitmap64;
+printf("isEmpty:%d\n", $roaring3->isEmpty());
+$roaring3->read($data, false);
+printf("toString:%s\n", $roaring3->toString());
 ?>
 --EXPECT--
 contains 9000000000000000102: 1
@@ -36,12 +42,6 @@ cardinality:6
 contains 10: 0
 roaring2 isSubset:1
 roaring values:9000000000000000100,9000000000000000101,9000000000000000102,9000000000000000110,9000000000000000111,9000000000000000112,
-Array
-(
-    [0] => 9000000000000000100
-    [1] => 9000000000000000101
-    [2] => 9000000000000000102
-    [3] => 9000000000000000110
-    [4] => 9000000000000000111
-    [5] => 9000000000000000112
-)
+["9000000000000000100","9000000000000000101","9000000000000000102","9000000000000000110","9000000000000000111","9000000000000000112"]
+isEmpty:1
+toString:{9000000000000000100,9000000000000000101,9000000000000000102,9000000000000000110,9000000000000000111,9000000000000000112}

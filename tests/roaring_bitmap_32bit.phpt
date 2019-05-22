@@ -6,6 +6,8 @@ Check for roaring_bitmap
 <?php
 $roaring = new roaring_bitmap;
 
+$roaring2 = new roaring_bitmap;
+
 $roaring->addMany(array(1,2,3));
 
 $n = 3;
@@ -27,8 +29,16 @@ for($roaring->iterator_begin(); !$roaring->iterator_end(); $roaring->iterator_ad
 }
 printf("\n");
 
+
 $vals = $roaring->toArray();
-print_r($vals);
+printf("%s\n", json_encode($vals));
+
+
+$data = $roaring->write(false);
+$roaring3 = new roaring_bitmap;
+printf("isEmpty:%d\n", $roaring3->isEmpty());
+$roaring3->read($data, false);
+printf("toString:%s\n", $roaring3->toString());
 ?>
 --EXPECT--
 contains 3: 1
@@ -36,12 +46,6 @@ cardinality:6
 contains 10: 1
 roaring2 isSubset:1
 roaring values:1,2,3,10,11,12,
-Array
-(
-    [0] => 1
-    [1] => 2
-    [2] => 3
-    [3] => 10
-    [4] => 11
-    [5] => 12
-)
+[1,2,3,10,11,12]
+isEmpty:1
+toString:{1,2,3,10,11,12}
