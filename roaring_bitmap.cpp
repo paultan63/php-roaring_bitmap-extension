@@ -599,6 +599,7 @@ PHP_METHOD(roaring_bitmap, getSizeInBytes)
 }
 /* }}} */
 
+
 /* {{{ proto long roaring_bitmap::replace(roaring_bitmap $another)
    Copies the content of the provided bitmap, and discard the current content. */
 PHP_METHOD(roaring_bitmap, replace)
@@ -623,6 +624,39 @@ PHP_METHOD(roaring_bitmap, replace)
     	*(intern->roaring) = *(other->roaring);
 
     	RETURN_LONG(ret);
+    }
+
+    RETURN_NULL();
+}
+/* }}} */
+
+/* {{{ proto bool roaring_bitmap::eq(roaring_bitmap $another)
+   Return true if the two bitmaps contain the same elements. */
+PHP_METHOD(roaring_bitmap, eq)
+{
+  bool ret = false;
+  zval* other_val;
+    
+    zval *zobj = getThis();
+    roaring_bitmap_object *intern;
+
+    if (zend_parse_parameters(
+      ZEND_NUM_ARGS() TSRMLS_CC, "O", &other_val, roaring_bitmap_ce) == FAILURE) {
+          RETURN_NULL();
+    }
+
+    intern = Z_TSTOBJ_P(zobj);
+
+    roaring_bitmap_object *other;
+    other = Z_TSTOBJ_P(other_val);
+
+    if(intern != NULL && other != NULL){
+      if(*(intern->roaring) == *(other->roaring))
+        ret = true;
+      else
+        ret = false;
+
+      RETURN_BOOL(ret);
     }
 
     RETURN_NULL();
@@ -1133,7 +1167,7 @@ PHP_METHOD(roaring_bitmap, write)
 }
 /* }}} */
 
-/* {{{ proto long roaring_bitmap::read([bool $portable = false])
+/* {{{ proto bool roaring_bitmap::read([bool $portable = false])
    read a bitmap from a serialized version. Setting the portable flag to false enable a custom format that 
    can save space compared to the portable format (e.g., for very sparse bitmaps). */
 PHP_METHOD(roaring_bitmap, read)
@@ -1447,6 +1481,7 @@ const zend_function_entry roaring_bitmap_functions[] = {
     PHP_ME(roaring_bitmap, isEmpty,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, getSizeInBytes,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, replace,  NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(roaring_bitmap, eq,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, sub,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, and,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, or,  NULL, ZEND_ACC_PUBLIC)
@@ -1939,6 +1974,39 @@ PHP_METHOD(roaring_bitmap64, replace)
         *(intern->roaring) = *(other->roaring);
 
         RETURN_LONG(ret);
+    }
+
+    RETURN_NULL();
+}
+/* }}} */
+
+/* {{{ proto bool roaring_bitmap64::eq(roaring_bitmap64 $another)
+   Return true if the two bitmaps contain the same elements. */
+PHP_METHOD(roaring_bitmap64, eq)
+{
+    bool ret = false;
+    zval* other_val;
+    
+    zval *zobj = getThis();
+    roaring_bitmap64_object *intern;
+
+    if (zend_parse_parameters(
+      ZEND_NUM_ARGS() TSRMLS_CC, "O", &other_val, roaring_bitmap64_ce) == FAILURE) {
+          RETURN_NULL();
+    }
+
+    intern = Z_TSTOBJ64_P(zobj);
+
+    roaring_bitmap64_object *other;
+    other = Z_TSTOBJ64_P(other_val);
+
+    if(intern != NULL && other != NULL){
+        if(*(intern->roaring) == *(other->roaring))
+          ret = true;
+        else
+          ret = false;
+        
+        RETURN_BOOL(ret);
     }
 
     RETURN_NULL();
@@ -2574,6 +2642,7 @@ const zend_function_entry roaring_bitmap64_functions[] = {
     PHP_ME(roaring_bitmap64, isEmpty,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap64, getSizeInBytes,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap64, replace,  NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(roaring_bitmap64, eq,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap64, sub,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap64, and,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap64, or,  NULL, ZEND_ACC_PUBLIC)
