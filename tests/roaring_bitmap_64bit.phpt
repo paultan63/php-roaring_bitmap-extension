@@ -34,6 +34,10 @@ $data = $roaring->write(false);
 $roaring3 = new roaring_bitmap64;
 printf("isEmpty:%d\n", $roaring3->isEmpty());
 $roaring3->read($data, false);
+if($roaring3->eq($roaring) == true)
+	printf("roaring3 == roaring\n");
+else
+	printf("roaring3 != roaring\n");
 printf("toString:%s\n", $roaring3->toString());
 ?>
 --EXPECT--
@@ -44,4 +48,5 @@ roaring2 isSubset:1
 roaring values:9000000000000000100,9000000000000000101,9000000000000000102,9000000000000000110,9000000000000000111,9000000000000000112,
 ["9000000000000000100","9000000000000000101","9000000000000000102","9000000000000000110","9000000000000000111","9000000000000000112"]
 isEmpty:1
+roaring3 == roaring
 toString:{9000000000000000100,9000000000000000101,9000000000000000102,9000000000000000110,9000000000000000111,9000000000000000112}

@@ -141,6 +141,9 @@ print_r($vals);
 *  long roaring_bitmap::replace(roaring_bitmap $another)
 >    Copies the content of the provided bitmap, and discard the current content. 
 
+*  bool roaring_bitmap::eq(roaring_bitmap $another)
+>    Return true if the two bitmaps contain the same elements. 
+
 *  long roaring_bitmap::sub(roaring_bitmap $another)
 >    Compute the difference between the current bitmap and the provided bitmap, 
 >    writing the result in the current bitmap. The provided bitmap is not modified.
@@ -276,6 +279,9 @@ print_r($vals);
 
 *  long roaring_bitmap64::replace(roaring_bitmap64 $another)
 >    Copies the content of the provided bitmap, and discard the current content. 
+
+*  bool roaring_bitmap64::eq(roaring_bitmap64 $another)
+>    Return true if the two bitmaps contain the same elements. 
 
 *  long roaring_bitmap64::sub(roaring_bitmap64 $another)
 >    Compute the difference between the current bitmap and the provided bitmap, 
