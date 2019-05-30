@@ -1326,6 +1326,10 @@ static void roaring_bitmap_object_free(zend_object *object)
 
     // Free the object using Zend macro.
     zend_object_std_dtor(object); 
+
+#if PHP_MAJOR_VERSION < 7
+	efree(my_obj);
+#endif    
 }
 
 #if PHP_MAJOR_VERSION >= 7
@@ -2529,6 +2533,10 @@ static void roaring_bitmap64_object_free(zend_object *object)
 
     // Free the object using Zend macro.
     zend_object_std_dtor(object); 
+
+#if PHP_MAJOR_VERSION < 7
+	efree(my_obj);
+#endif    
 }
 
 #if PHP_MAJOR_VERSION >= 7
