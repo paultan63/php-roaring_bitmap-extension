@@ -41,7 +41,7 @@ printf("contains %d: %d\n", $n, $roaring->contains($n));
 printf("roaring2 isSubset:%d\n", $roaring2->isSubSet($roaring));
 
 printf("roaring values:");
-for($roaring->iterator_begin(); !$roaring->iterator_end(); $roaring->iterator_advance()){
+for($roaring->iterator_begin(); $roaring->iterator_end() === false; $roaring->iterator_advance()){
         printf("%u,", $roaring->iterator_value());
 }
 printf("\n");
@@ -72,7 +72,7 @@ printf("contains %d: %d\n", $n, $roaring->contains($n));
 printf("roaring2 isSubset:%d\n", $roaring2->isSubSet($roaring));
 
 printf("roaring values:");
-for($roaring->iterator_begin(); !$roaring->iterator_end(); $roaring->iterator_advance()){
+for($roaring->iterator_begin(); $roaring->iterator_end() === false; $roaring->iterator_advance()){
         printf("%u,", $roaring->iterator_value());
 }
 printf("\n");
