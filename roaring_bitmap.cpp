@@ -1084,7 +1084,6 @@ PHP_METHOD(roaring_bitmap, iterator_value)
    Convert the bitmap to an array and return it. array size is: this->cardinality() */
 PHP_METHOD(roaring_bitmap, toArray)
 {
-	array_init(return_value);
 	
     zval *zobj = getThis();
     roaring_bitmap_object *intern;
@@ -1101,7 +1100,60 @@ PHP_METHOD(roaring_bitmap, toArray)
 		if(vals == NULL){
 			RETURN_NULL();
 		}
+
+		array_init(return_value);
+
 		intern->roaring->toUint32Array(vals);
+		uint32_t* p = vals;
+		for(uint32_t i=0; i < num; i++, p++){
+			add_next_index_long(return_value, *p);
+		}
+		free(vals);
+
+        return;
+    }
+
+    RETURN_NULL();
+}
+/* }}} */
+
+/* {{{ proto array roaring_bitmap::rangeArray($offset, $limit)
+   to int array with pagination */
+PHP_METHOD(roaring_bitmap, rangeArray)
+{
+	long offset, limit;
+    
+    zval *zobj = getThis();
+    roaring_bitmap_object *intern;
+
+    if (zend_parse_parameters(
+      ZEND_NUM_ARGS() TSRMLS_CC, "ll", &offset, &limit) == FAILURE) {
+          RETURN_NULL();
+    }
+    if(offset < 0)
+    	RETURN_BOOL(false);
+
+    intern = Z_TSTOBJ_P(zobj);
+    if(intern != NULL) {
+    	uint64_t total = intern->roaring->cardinality();
+    	if(offset >= total){ // return empty array
+    		array_init(return_value);
+
+    		return;
+    	}
+
+		uint32_t num = limit;
+		if(offset + num > total)
+			num = total - offset;
+
+		uint32_t* vals = (uint32_t*)malloc(sizeof(uint32_t) * num);
+		if(vals == NULL){
+			RETURN_NULL();
+		}
+
+		array_init(return_value);
+
+		intern->roaring->rangeUint32Array(vals, offset, num);
 		uint32_t* p = vals;
 		for(uint32_t i=0; i < num; i++, p++){
 			add_next_index_long(return_value, *p);
@@ -1502,6 +1554,7 @@ const zend_function_entry roaring_bitmap_functions[] = {
     PHP_ME(roaring_bitmap, iterator_advance,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, iterator_value,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, toArray,  NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(roaring_bitmap, rangeArray,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, toString,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, write,  NULL, ZEND_ACC_PUBLIC)
     PHP_ME(roaring_bitmap, read,  NULL, ZEND_ACC_PUBLIC)
@@ -2286,8 +2339,6 @@ PHP_METHOD(roaring_bitmap64, iterator_value)
    Convert the bitmap to an array and return it. array size is: this->cardinality() */
 PHP_METHOD(roaring_bitmap64, toArray)
 {
-    array_init(return_value);
-    
     zval *zobj = getThis();
     roaring_bitmap64_object *intern;
 
@@ -2303,6 +2354,9 @@ PHP_METHOD(roaring_bitmap64, toArray)
         if(vals == NULL){
             RETURN_NULL();
         }
+        
+        array_init(return_value);
+
         intern->roaring->toUint64Array(vals);
         uint64_t* p = vals;
         unsigned int len = 0;
