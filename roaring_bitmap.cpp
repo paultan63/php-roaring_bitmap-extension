@@ -2815,7 +2815,8 @@ PHP_MINIT_FUNCTION(roaring_bitmap)
 zend_module_entry roaring_bitmap_module_entry = {
     STANDARD_MODULE_HEADER,
     "roaring_bitmap",
-    roaring_bitmap_functions,
+//    roaring_bitmap_functions,
+    NULL,
     PHP_MINIT(roaring_bitmap),
     PHP_MSHUTDOWN(roaring_bitmap),
     PHP_RINIT(roaring_bitmap),      /* Replace with NULL if there's nothing to do at request start */
